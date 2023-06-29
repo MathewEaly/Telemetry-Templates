@@ -1,8 +1,6 @@
-// KQL samples - Long Running AL
-
 // Long running AL methods
 traces
-| where timestamp > ago(60d) // adjust as needed
+| where timestamp > ago(2d) // adjust as needed
 | where customDimensions has 'RT0018' // performance optimization
 | where customDimensions.eventId == 'RT0018' 
 | where customDimensions.alObjectId > 0 // filter out internal server calls
@@ -27,8 +25,6 @@ traces
 , extensionName = customDimensions.extensionName
 , extensionPublisher = customDimensions.extensionPublisher
 , extensionVersion = customDimensions.extensionVersion
-, longRunningThreshold = customDimensions.longRunningThreshold
-, longRunningThresholdInMS = toreal(totimespan(customDimensions.longRunningThreshold))/10000 //the datatype for executionTime is timespan 
 , sqlExecutes = customDimensions.sqlExecutes // This dimension was introduced in Business Central 2023 release wave 1, version 22.0
 , sqlRowsRead = customDimensions.sqlRowsRead // This dimension was introduced in Business Central 2023 release wave 1, version 22.0
 , usertelemetryId = case(
