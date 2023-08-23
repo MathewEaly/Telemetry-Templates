@@ -5,7 +5,7 @@
 
 // Outgoing Web Service Requests from AL HttpClient (RAW data)
 traces
-| where timestamp > ago(60d) // change if your retention policy is different than the default
+| where timestamp > ago(2d) // change if your retention policy is different than the default
 | where customDimensions has 'RT0019'
 | where customDimensions.eventId == 'RT0019'
 | project eventId = customDimensions.eventId 
