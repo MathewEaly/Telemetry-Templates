@@ -1,9 +1,9 @@
 // Error dialog shown (raw data) 
 // available from 20.0
 traces
-| where timestamp > ago(60d) // adjust as needed
+| where timestamp > ago(2d) // adjust as needed
     and customDimensions.eventId == 'RT0030'
-| project timestamp
+| project LocalTime=datetime_utc_to_local(timestamp , 'America/New_York')
 , aadTenantId = customDimensions.aadTenantId
 , alErrorMessage = customDimensions.alErrorMessage
 , alObjectId = customDimensions.alObjectId

@@ -1,13 +1,13 @@
 // Errors - logged from FeatureTelemetry.LogError
 // Available from version 19.1
 traces
-| where timestamp > ago(5d)
+| where timestamp > ago(2d)
 | where customDimensions has 'FeatureTelemetry'
-| where customDimensions has == 'Error'
+| where customDimensions has 'Error'
 | where customDimensions.alCategory == 'FeatureTelemetry'
 | where customDimensions.alSubCategory == 'Error'
 | extend Category = customDimensions.alCategory
-| extend Date = format_datetime(timestamp, 'yyyy-MM-dd')
+| extend LocalTime=datetime_utc_to_local(timestamp , 'America/New_York')
 , aadTenantId = customDimensions.aadTenantId
 , environmentName = customDimensions.environmentName
 , environmentType = customDimensions.environmentType
