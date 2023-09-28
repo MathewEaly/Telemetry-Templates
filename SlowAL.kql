@@ -2,7 +2,7 @@
 // See tips on how to develop efficient AL code in the performance tuning guide aka.ms/bcperformance
 
 traces
-| where timestamp > ago(1d) // adjust as needed
+| where timestamp > ago(10d) // adjust as needed
 and customDimensions.eventId == 'RT0018'
 | extend aadTenantId = tostring( customDimensions.aadTenantId )
 , environmentName = customDimensions.environmentName
