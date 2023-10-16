@@ -1,7 +1,6 @@
-// 20 slowest AL functions called in the last 24 hours
-
+// 20 slowest AL functions called between two dates
 traces
-| where timestamp between (datetime(10-10-23) .. datetime(10-12-23)) // adjust as needed
+| where timestamp between (datetime(10-10-23) .. datetime(10-12-23)) // Modify as needed
 and customDimensions.eventId == 'RT0018'
 | extend aadTenantId = tostring( customDimensions.aadTenantId )
 , environmentName = customDimensions.environmentName
