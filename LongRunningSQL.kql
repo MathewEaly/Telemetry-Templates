@@ -5,9 +5,9 @@ traces
 | where customDimensions.eventId == "RT0005"
 | where not (customDimensions has 'Companies') //not interested in "Copy Company" and such
 | where isnotempty(customDimensions.alObjectId)
-| where isnotempty( customDimensions.alStackTrace ) // RT0019 only has stacktrace from 20.1
-     or isnotempty( customDimensions.alJobQueueStacktrace ) // stack trace added in 21.3
-| extend StackTrace = tostring( customDimensions.alStackTrace )
+| where isnotempty( customDimensions.alStackTrace) // RT0019 only has stacktrace from 20.1
+     or isnotempty( customDimensions.alJobQueueStacktrace) // stack trace added in 21.3
+| extend StackTrace = tostring( customDimensions.alStackTrace)
 | extend companyName_ = tostring(customDimensions.companyName)
     , clientType_ = tostring(customDimensions.clientType)
     , eventId_ = tostring(customDimensions.eventId)
