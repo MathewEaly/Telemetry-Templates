@@ -1,0 +1,23 @@
+// overview of event ingestion in your Application Insights resource
+let lookback = 30d ;
+let traces_stats = 
+traces
+| where timestamp > ago(lookback) 
+| extend eventId = tostring( customDimensions.eventId )
+| summarize count() by eventId
+| extend table_name = 'traces'
+| project eventId, table_name, count_
+;
+let pageview_stats =
+pageViews
+| where timestamp > ago(lookback) 
+| extend eventId = tostring( customDimensions.eventID )
+| summarize count() by eventId
+| extend table_name = 'pageViews'
+| project eventId, table_name, count_
+;
+traces_stats
+| union pageview_stats
+| order by count_ desc
+| project eventId, table_name, event_count=count_
+| order by event_count desc
