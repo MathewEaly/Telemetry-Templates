@@ -1,0 +1,25 @@
+// Outgoing Web Service Requests from AL HttpClient (RAW data)
+traces
+| where timestamp > ago(6h)
+| where customDimensions.eventId == 'RT0019'
+    and customDimensions.alObjectName contains 'DSHIP'
+| project LocalTime=datetime_utc_to_local(timestamp , 'America/New_York') //Return Local Time for ET 
+, aadTenantId = customDimensions.aadTenantId
+, environmentName = customDimensions.environmentName
+, alAuthenticationMethod = customDimensions.alAuthenticationMethod
+, alObjectId = customDimensions.alObjectId
+, alObjectName = customDimensions.alObjectName
+, alObjectType = customDimensions.alObjectType
+, alStackTrace = customDimensions.alStackTrace
+, clientType = customDimensions.clientType
+, endpoint = customDimensions.endpoint
+, extensionId = customDimensions.extensionId
+, extensionName = customDimensions.extensionName
+, extensionVersion = customDimensions.extensionVersion
+, executionTime = customDimensions.serverExecutionTime
+, httpMethod = toupper( customDimensions.httpMethod ) // httpMethod is logged as the value used in the AL code
+, httpStatusCode = case( isnotempty(customDimensions.httpStatusCode), customDimensions.httpStatusCode, customDimensions.httpReturnCode ) 
+, usertelemetryId = case(
+  toint( substring(customDimensions.componentVersion,0,2)) >= 20, user_Id
+, 'N/A'
+)
