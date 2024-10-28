@@ -1,7 +1,7 @@
 // KQL samples - Page Views (client usage)
 
 // Use renames in the project operator if you don't need to filter on the columns extracted from customDimensions
-// move columns up to the extend operator and add a tostring function call if you need to filter or summarize on it
+// move columns up to the extend operator and add a to string function call if you need to filter or summarize on it
 
 // Page views (RAW data)
 pageViews
