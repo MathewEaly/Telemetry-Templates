@@ -1,0 +1,22 @@
+// Client Actions
+// This query is used to analyze client actions in Business Central.
+// Introduced in 22.0 (actions UI.AnalysisMode.Disabled, UI.AnalysisMode.Enabled)
+traces
+| where timestamp > ago(5d)
+| where customDimensions has 'CL0003'
+| where customDimensions.eventId == 'CL0003'
+| project 
+    LocalTime=datetime_utc_to_local(timestamp , 'America/New_York')
+, aadTenantId = customDimensions.aadTenantId
+, clientType = customDimensions.clientType
+, companyName = customDimensions.companyName
+, environmentName = customDimensions.environmentName
+, environmentType = customDimensions.environmentType
+, message = customDimensions.message
+, clientAction = customDimensions.clientAction
+, alObjectId = customDimensions.alObjectId
+, alObjectName = customDimensions.alObjectName
+, appId = customDimensions.appId
+, appName = customDimensions.appName
+, appPublisher = customDimensions.appPublisher
+, appVersion = customDimensions.appVersion
