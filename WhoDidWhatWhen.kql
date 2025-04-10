@@ -1,0 +1,9 @@
+//Returns a ton of records
+//Needs to be limited to a small window of time
+//Or you can use "set notruncation;" and hope it doesn't crash
+
+traces
+| where timestamp between (datetime(2025-04-10 06:00:00) .. datetime(2025-04-10 7:30:00))
+| project timestamp, session_Id, message
+| order by session_Id, timestamp
+| evaluate pivot(session_Id)
