@@ -1,7 +1,5 @@
 // Kusto query that can show you how much users wait for outgoing web service calls to finish
 
-// Read more here: https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/performance/performance-developer#outgoing-web-service-calls-block-al-execution
-
 traces
 | where customDimensions has 'RT0019'
 | where customDimensions.clientType == 'WebClient'
