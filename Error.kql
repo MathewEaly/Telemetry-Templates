@@ -5,7 +5,7 @@
 traces
 | where timestamp > ago(60d) // adjust as needed
     and customDimensions.eventId == 'RT0030'
-| project timestamp
+| project LocalTime=datetime_utc_to_local(timestamp , 'America/New_York')
 , aadTenantId = customDimensions.aadTenantId
 , alErrorMessage = customDimensions.alErrorMessage
 , alObjectId = customDimensions.alObjectId
@@ -44,7 +44,7 @@ traces
 | where customDimensions.userFeedback in ('Yes', 'No')
 | extend AadTenantId = tostring( customDimensions.aadTenantId )
 , EnvironmentName = tostring( customDimensions.environmentName )
-| project timestamp
+| project LocalTime=datetime_utc_to_local(timestamp , 'America/New_York')
 , AadTenantId, EnvironmentName
 , ClientType = tostring( customDimensions.clientType )
 , ErrorMessage = tostring( customDimensions.errorMessage )
