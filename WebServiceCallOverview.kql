@@ -1,0 +1,19 @@
+traces
+| where timestamp > ago(24h) // only looking at last 24 hours adjust as needed
+| where customDimensions.eventId == 'RT0008' //WebServiceCalled
+| where customDimensions.environmentType == "Production" //Filtered to Production only
+| extend decentMessage = iif(indexof(message, ":") <= 0, message, substring(message, 0, indexof(message, ":")))
+, endpoint = tostring(customDimensions.endpoint)
+, alObjectName = tostring(customDimensions.alObjectName)
+, serverExecutionTime = tostring(customDimensions.serverExecutionTime)
+, serverExecutionTimeInMS = toreal(totimespan(customDimensions.serverExecutionTime))/10000 //the datatype for executionTime is timespan 
+, totalTime = tostring(customDimensions.totalTime)
+, totalTimeInMS = toreal(totimespan(customDimensions.totalTime))/10000 //the datatype for executionTime is timespan 
+| summarize count = count(), avgServerExecutionTimeInMS = avg(serverExecutionTimeInMS), avgTotalTimeInMs = avg(totalTimeInMS) by alObjectName 
+| project 
+    alObjectName
+    , ['count']
+    , avgServerExecutionTimeInMS = round(avgServerExecutionTimeInMS,0)
+    , avgTotalTimeInMs = round(avgTotalTimeInMs, 0)
+    , ApproxTime = round(['count'] * avgServerExecutionTimeInMS,0)
+| order by ApproxTime desc 
