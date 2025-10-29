@@ -1,0 +1,14 @@
+// Feature management state changes
+// Available from 22.0
+traces
+| where timestamp > ago(7d) // change as needed
+| where customDimensions has 'AL0000JT3'
+| where customDimensions.eventId == 'AL0000JT3'
+| project timestamp
+    , aadTenantId = customDimensions.aadTenantId
+    , environmentName = customDimensions.environmentName
+    , environmentType = customDimensions.environmentType
+    , FeatureId = customDimensions.alFeatureId // feature name
+    , FeatureDescription = customDimensions.alFeatureDescription // feature description
+    , Status = customDimensions.alStatus // enabled/disabled
+    , usertelemetryId = user_Id // who did it

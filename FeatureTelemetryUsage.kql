@@ -1,0 +1,28 @@
+// Usage - logged from FeatureTelemetry.LogUsage
+// Available from version 19.1
+traces
+| where timestamp > ago(5d)
+| where customDimensions has 'FeatureTelemetry'
+| where customDimensions has 'Usage'
+| where customDimensions.alCategory == 'FeatureTelemetry'
+| where customDimensions.alSubCategory == 'Usage'
+| project timestamp
+    , aadTenantId = customDimensions.aadTenantId
+    , environmentName = customDimensions.environmentName
+    , environmentType = customDimensions.environmentType
+    , companyName = customDimensions.companyName
+    , clientType = customDimensions.alClientType
+    , eventId = customDimensions.eventId
+    , featureName = customDimensions.alFeatureName
+    , eventName = customDimensions.alEventName
+    , category = customDimensions.alCategory
+    , appName = customDimensions.alCallerAppName // added in 20.0
+    , appId = customDimensions.alCallerAppId // added in 22.0
+    , appPublisher = customDimensions.alCallerPublisher // added in 20.0
+    , appVersion = customDimensions.alCallerAppVersion // added in 20.0
+    , usertelemetryId = case(
+
+// user telemetry id was introduced in the platform in version 20.0
+toint( substring(customDimensions.componentVersion,0,2)) >= 20, user_Id
+, 'N/A'
+)
