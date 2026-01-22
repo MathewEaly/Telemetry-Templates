@@ -5,7 +5,8 @@ traces
 | where customDimensions has "RT0008"
 | where customDimensions.eventId == "RT0008"
 |where customDimensions.environmentType == "Production" // focus on Production environments
-| where tostring(customDimensions.httpStatusCode) == "429"
+| where tostring(customDimensions.httpStatusCode) == "429" //limit to the 429 Too Many Requests responses
+// extract relevant dimensions
 | project timestamp
 , extensionId = customDimensions.extensionId
 , extensionName = customDimensions.extensionName

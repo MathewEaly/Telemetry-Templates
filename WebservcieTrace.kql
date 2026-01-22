@@ -1,0 +1,25 @@
+traces
+|where timestamp > ago(5d) // change if your retention policy is different than the default
+| where customDimensions has "RT0008" or customDimensions.eventId == "RT0019"
+| where customDimensions.environmentType == "Production" // focus on Production environments
+|project
+//Display Local time in Eastern Time Zone
+LocalTime=datetime_utc_to_local(timestamp , 'America/New_York') ,
+customDimensions.companyName ,
+//Declare if incoming or outgoing webservice call
+direction = case(
+    customDimensions.direction == "RT0008", "Incoming"
+  , customDimensions.direction == "RT0019", "Outgoing"
+  , "Unknown"
+) ,
+//Webservice type
+category = customDimensions.category ,
+endpoint = customDimensions.endpoint ,
+httpMethod = customDimensions.httpMethod ,
+httpStatusCode = customDimensions.httpStatusCode ,
+failureReason = customDimensions.failureReason ,
+alObjectType = customDimensions.alObjectType ,
+alObjectName = customDimensions.alObjectName ,
+//Extension details
+extensionName = customDimensions.extensionName ,
+extensionPublisher = customDimensions.extensionPublisher 
