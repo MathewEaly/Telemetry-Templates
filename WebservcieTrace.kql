@@ -1,8 +1,8 @@
 traces
-|where timestamp > ago(5d) // change if your retention policy is different than the default
+| where timestamp > ago(24h) // change if your retention policy is different than the default
 | where customDimensions has "RT0008" or customDimensions.eventId == "RT0019" or customDimensions.eventId == "RT0053"
 | where customDimensions.environmentType == "Production" // focus on Production environments
-|project
+| project
 //Display Local time in Eastern Time Zone
 LocalTime=datetime_utc_to_local(timestamp , 'America/New_York') ,
 compantName = customDimensions.companyName ,
@@ -24,3 +24,10 @@ alObjectName = customDimensions.alObjectName ,
 //Extension details
 extensionName = customDimensions.extensionName ,
 extensionPublisher = customDimensions.extensionPublisher 
+
+//If you want to analyze performance, you can uncomment the following lines
+// , executionTime = customDimensions.serverExecutionTime
+// , requestQueueTime = customDimensions.requestQueueTime // This dimension was introduced in Business Central 2023 release wave 1, version 22.0.
+// , requestQueueTimeMS = toreal(totimespan(customDimensions.requestQueueTime))/10000
+// , executionTimeInMS = toreal(totimespan(customDimensions.serverExecutionTime))/10000 
+// , requestTotalTimeMS = ( toreal(totimespan(customDimensions.totalTime))+toreal(totimespan(customDimensions.requestQueueTime)) )/10000
