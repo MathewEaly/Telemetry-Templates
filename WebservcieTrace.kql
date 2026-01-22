@@ -1,15 +1,16 @@
 traces
 |where timestamp > ago(5d) // change if your retention policy is different than the default
-| where customDimensions has "RT0008" or customDimensions.eventId == "RT0019"
+| where customDimensions has "RT0008" or customDimensions.eventId == "RT0019" or customDimensions.eventId == "RT0053"
 | where customDimensions.environmentType == "Production" // focus on Production environments
 |project
 //Display Local time in Eastern Time Zone
 LocalTime=datetime_utc_to_local(timestamp , 'America/New_York') ,
-customDimensions.companyName ,
+compantName = customDimensions.companyName ,
 //Declare if incoming or outgoing webservice call
 direction = case(
     customDimensions.eventId == "RT0008", "Incoming"
   , customDimensions.eventId == "RT0019", "Outgoing"
+  , customDimensions.eventId == "RT0053", "Depricated endpoint"
   , "Unknown"
 ) ,
 //Webservice type
