@@ -8,8 +8,8 @@ LocalTime=datetime_utc_to_local(timestamp , 'America/New_York') ,
 customDimensions.companyName ,
 //Declare if incoming or outgoing webservice call
 direction = case(
-    customDimensions.direction == "RT0008", "Incoming"
-  , customDimensions.direction == "RT0019", "Outgoing"
+    customDimensions.eventId == "RT0008", "Incoming"
+  , customDimensions.eventId == "RT0019", "Outgoing"
   , "Unknown"
 ) ,
 //Webservice type
