@@ -7,3 +7,15 @@ traces
 | project timestamp, session_Id, message
 | order by session_Id, timestamp
 | evaluate pivot(session_Id)
+
+
+traces
+| where timestamp between (datetime(2025-04-10 06:00:00) .. datetime(2025-04-10 7:30:00))
+| where customDimensions.environmentType == "Production" //Filtered to Production only
+| where customDimensions.companyName == "Contoso" //Filtered to Contoso only
+|project
+LocalTime=datetime_utc_to_local(timestamp , 'America/New_York') ,
+session_Id,
+message
+| order by session_Id, LocalTime
+| evaluate pivot(session_Id, LocalTime, message)
