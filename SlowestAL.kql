@@ -3,6 +3,7 @@
 traces
 | where timestamp > ago(10d) // adjust as needed
 and customDimensions.eventId == 'RT0018'
+| where customDimensions.environmentType == "Production" // focus on Production environments
 | extend aadTenantId = tostring( customDimensions.aadTenantId )
 , environmentName = customDimensions.environmentName
 , environmentType = customDimensions.environmentType
@@ -16,4 +17,4 @@ and customDimensions.eventId == 'RT0018'
 | extend executionTimeInSec = executionTimeInMS / 1000
 | summarize count(), dcount( aadTenantId ), sum( executionTimeInSec ), avg( executionTimeInSec ) by alMethod, alObjectType, alObjectName, extensionName
 | order by avg_executionTimeInSec desc 
-| limit 20
+| limit 25
