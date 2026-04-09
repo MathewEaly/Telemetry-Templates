@@ -1,0 +1,34 @@
+traces
+| where timestamp > ago(10d) // adjust as needed
+| where operation_Name == 'Failed report generation' // do note that in a later version of the schema, this field will not be used 
+  or customDimensions.eventId == 'RT0006'            // introduced in version 16.1
+| where customDimensions.result <> 'Success'
+| where customDimensions.environmentType == "Production" // focus on Production environments
+| project LocalTime=datetime_utc_to_local(timestamp , 'America/New_York')
+// in which environment/company did it happen
+// , environmentName = customDimensions.environmentName //uncomment if the customer has more than one production enviroment.
+, companyName = customDimensions.companyName
+// in which extension/app
+//, extensionId = customDimensions.extensionId
+, extensionName = customDimensions.extensionName
+//, extensionVersion = customDimensions.extensionVersion
+, extensionPublisher = customDimensions.extensionPublisher
+// in which object
+, alObjectId = customDimensions.alObjectId
+, alObjectName = customDimensions.alObjectName
+, alObjectType = customDimensions.alObjectType
+// what did the user do
+, documentFormat = customDimensions.documentFormat   // documentFormat dimension added in version 20.0
+//, LayoutAppId = customDimensions.layoutAppId         // layout dimensions added in version 20.0
+, LayoutName = customDimensions.layoutName           // layout dimensions added in version 20.0
+, LayoutType = customDimensions.layoutType           // layout dimensions added in version 20.0
+, reportAction = customDimensions.reportAction       // reportAction dimension added in version 20.0
+, reportingEngine = customDimensions.reportingEngine // reportingEngine dimension was added in version 17.3
+// which user ran the report
+, usertelemetryId = case(
+  toint( substring(customDimensions.componentVersion,0,2)) >= 20, user_Id // user telemetry id was introduced in the platform in version 20.0
+, 'N/A'
+)
+// what happened
+, alStackTrace = customDimensions.alStackTrace
+, failureReason = customDimensions.result
