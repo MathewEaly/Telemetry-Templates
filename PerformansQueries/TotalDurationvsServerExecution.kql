@@ -1,0 +1,40 @@
+// Step 1: Get server-side execution time from long running SQL events
+let sqlTimes =
+traces
+| where timestamp > ago(7d)
+| where customDimensions has 'RT0005'
+| where customDimensions.eventId == 'RT0005'
+| project timestamp
+, session_Id
+, sqlExecutionTimeMS = toreal(totimespan(customDimensions.executionTime)) / 10000
+, alObjectName       = tostring(customDimensions.alObjectName)
+, sqlStatement       = tostring(customDimensions.sqlStatement)
+;
+// Step 2: Get page view durations
+let pageLoads =
+pageViews
+| where timestamp > ago(7d)
+| where name has "Sales Order"
+| project timestamp
+, session_Id
+, totalDurationMS = duration
+, usertelemetryId = user_Id
+, companyName     = tostring(customDimensions.companyName)
+;
+// Step 3: Join on session and correlate — look at the gap
+pageLoads
+| join kind=leftouter (sqlTimes) on session_Id
+| extend impliedNetworkAndClientMS = totalDurationMS - sqlExecutionTimeMS
+| project timestamp
+, usertelemetryId
+, companyName
+, totalDurationMS
+, sqlExecutionTimeMS
+, impliedNetworkAndClientMS         // large values here point to network/client, not BC
+, alObjectName
+, sqlStatement
+| order by totalDurationMS desc
+//How to read this: 
+//If sqlExecutionTimeMS is low (say 200 ms) but totalDurationMS is high (say 4,000 ms), 
+//the gap of ~3,800 ms is client/network time. 
+//If both are high, the problem is server-side.

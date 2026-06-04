@@ -1,0 +1,13 @@
+// Database lock timeouts — did any lock actually fail?
+traces
+| where timestamp > ago(7d)
+| where customDimensions has 'RT0012'
+| where customDimensions.eventId == 'RT0012'
+| project timestamp
+, companyName        = tostring(customDimensions.companyName)
+, alObjectId         = tostring(customDimensions.alObjectId)
+, alObjectName       = tostring(customDimensions.alObjectName)
+, extensionName      = tostring(customDimensions.extensionName)
+, clientType         = tostring(customDimensions.clientType)
+, alStackTrace       = tostring(customDimensions.alStackTrace)
+| order by timestamp desc

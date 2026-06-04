@@ -1,0 +1,2 @@
+Important: Microsoft documented that BC is designed for networks with latency of 250–300 ms or less. If rtt exceeds that threshold, network is your primary suspect before you even look at SQL.
+

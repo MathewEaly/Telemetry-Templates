@@ -1,0 +1,15 @@
+pageViews
+| where timestamp > ago(7d)
+| where name has "Sales Order"
+| summarize
+    avgDurationMS = round(avg(duration), 0)
+  , p95DurationMS = round(percentile(duration, 95), 0)
+  , pageLoads     = count()
+  by usertelemetryId = user_Id
+| order by avgDurationMS desc
+//Network problem signature: 
+//A small subset of users is consistently slow while others on the same environment are fast. 
+//This points to client location, ISP, or VPN — not BC.
+
+//BC server problem signature: 
+//All users experience similar slowness regardless of location, or slowness correlates with time of day (batch job windows, peak usage).

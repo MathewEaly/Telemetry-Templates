@@ -1,0 +1,13 @@
+// Replace the GUID with a session_Id from your pageViews results
+let _session_Id = 'paste-your-session-guid-here';
+let pv =
+pageViews
+| where session_Id == _session_Id
+| extend message = strcat('Page opened: ', name)
+| project timestamp, session_Id, user_Id, message, clientType = 'WebClient';
+let tra =
+traces
+| where session_Id == _session_Id
+| project timestamp, session_Id, user_Id, message, clientType = tostring(customDimensions.clientType);
+union pv, tra
+| order by timestamp asc

@@ -1,0 +1,20 @@
+// Lock snapshots — identify what table is locked and by which object
+traces
+| where timestamp > ago(2d)
+| where customDimensions has 'RT0013'
+| where customDimensions.eventId == 'RT0013'
+| project timestamp
+, sqlTableLocked          = tostring(customDimensions.sqlTableName)
+, sqlLockResourceType     = tostring(customDimensions.sqlLockResourceType)
+, sqlLockRequestMode      = tostring(customDimensions.sqlLockRequestMode)
+, sqlLockRequestStatus    = tostring(customDimensions.sqlLockRequestStatus)
+, alObjectNameHoldingLock = tostring(customDimensions.alObjectName)
+, alObjectTypeHoldingLock = tostring(customDimensions.alObjectType)
+, extensionNameHoldingLock= tostring(customDimensions.extensionName)
+, clientTypeHoldingLock   = tostring(customDimensions.clientType)
+, alStackTrace            = tostring(customDimensions.alStackTrace)
+| where sqlTableLocked has_any ('Sales Header', 'Sales Line', 'Item Ledger', 'Value Entry', 'G/L Entry')
+| order by timestamp desc
+//What to look for: 
+//Locks held by background job sessions (clientType = Background) while a Web Client user is entering orders is a classic pattern. 
+//Check whether posting jobs, inventory adjustments, or approval workflows run concurrently.

@@ -1,0 +1,21 @@
+// Long running AL methods — find slow code executing during order entry
+traces
+| where timestamp > ago(7d)
+| where customDimensions.eventId == 'RT0018'
+| where customDimensions.alObjectId > 0
+| project timestamp
+, companyName        = tostring(customDimensions.companyName)
+, alMethod           = tostring(customDimensions.alMethod)
+, alObjectId         = tostring(customDimensions.alObjectId)
+, alObjectName       = tostring(customDimensions.alObjectName)
+, alObjectType       = tostring(customDimensions.alObjectType)
+, extensionName      = tostring(customDimensions.extensionName)
+, extensionPublisher = tostring(customDimensions.extensionPublisher)
+, exclusiveTimeMS    = toreal(totimespan(customDimensions.exclusiveTime)) / 10000
+, totalTimeMS        = toreal(totimespan(customDimensions.executionTime)) / 10000
+, sqlExecutes        = toint(customDimensions.sqlExecutes)
+, sqlRowsRead        = toint(customDimensions.sqlRowsRead)
+, alStackTrace       = tostring(customDimensions.alStackTrace)
+, clientType         = tostring(customDimensions.clientType)
+| order by totalTimeMS desc
+//High sqlExecutes counts (e.g., hundreds of SQL calls per page action) typically indicate a loop-inside-a-loop pattern in custom AL extensions — often the culprit in customized environments.

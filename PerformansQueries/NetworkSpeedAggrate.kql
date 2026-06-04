@@ -1,0 +1,13 @@
+pageViews
+| where timestamp > ago(7d)
+| where name has "Sales Order"
+| where isnotempty(customDimensions.deviceHardware)
+| extend hw = parse_json(tostring(customDimensions.deviceHardware))
+| summarize
+    avgDurationMS  = round(avg(duration), 0)
+  , avgRTT_ms      = round(avg(toint(hw.rtt)), 0)
+  , avgBW_mbps     = round(avg(toreal(hw.downlink)), 2)
+  , pageLoads      = count()
+  by usertelemetryId = user_Id, tostring(customDimensions.companyName)
+| extend networkSuspect = iff(avgRTT_ms > 250, "YES — exceeds BC recommended threshold", "OK")
+| order by avgRTT_ms desc

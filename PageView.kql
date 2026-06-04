@@ -5,7 +5,7 @@
 
 // Page views (RAW data)
 pageViews
-| where timestamp > ago(7d)
+| where timestamp > ago(30d)
 | extend
   LocalTime=datetime_utc_to_local(timestamp , 'America/New_York')
 , aadTenantId = customDimensions.aadTenantId

@@ -1,0 +1,19 @@
+// Client device hardware and network RTT — available from BC v26
+pageViews
+| where timestamp > ago(7d)
+| where name has "Sales Order"
+| where isnotempty(customDimensions.deviceHardware)
+| extend hw = parse_json(tostring(customDimensions.deviceHardware))
+| project timestamp
+, pageName        = name
+, usertelemetryId = user_Id
+, companyName     = tostring(customDimensions.companyName)
+, environmentName = tostring(customDimensions.environmentName)
+, totalDurationMS = duration
+, networkRTT_ms   = toint(hw.rtt)           // round-trip time in ms — BC recommends < 250-300ms
+, networkBW_mbps  = toreal(hw.downlink)     // bandwidth in Mbps
+, deviceMemoryGB  = toreal(hw.memory)
+, deviceCores     = toint(hw.cores)
+, clientBrowser   = client_Browser
+, clientOS        = client_OS
+| order by totalDurationMS desc

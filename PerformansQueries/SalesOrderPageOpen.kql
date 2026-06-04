@@ -1,0 +1,13 @@
+// Sales Order page open duration — identify slow loads
+pageViews
+| where timestamp > ago(7d)
+| where name has "Sales Order"                            // filters to Sales Order page views
+| project timestamp
+, pageName        = name
+, durationMS      = duration                              // in milliseconds
+, usertelemetryId = user_Id
+, clientType      = tostring(customDimensions.clientType)
+, companyName     = tostring(customDimensions.companyName)
+, environmentName = tostring(customDimensions.environmentName)
+, appId           = tostring(customDimensions.appId)
+| order by durationMS desc

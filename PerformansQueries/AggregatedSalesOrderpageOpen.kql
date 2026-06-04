@@ -1,0 +1,10 @@
+pageViews
+| where timestamp > ago(7d)
+| where name has "Sales Order"
+| summarize
+    count              = count()
+  , avgDurationMS      = round(avg(duration), 0)
+  , p95DurationMS      = round(percentile(duration, 95), 0)
+  , maxDurationMS      = round(max(duration), 0)
+  by bin(timestamp, 1h), tostring(customDimensions.clientType)
+| order by timestamp desc

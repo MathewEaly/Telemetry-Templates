@@ -1,0 +1,24 @@
+// Long running SQL — scoped to Sales Order context
+traces
+| where timestamp > ago(7d)
+| where customDimensions has 'RT0005'
+| where customDimensions.eventId == 'RT0005'
+| project timestamp
+, companyName        = tostring(customDimensions.companyName)
+, environmentName    = tostring(customDimensions.environmentName)
+, alObjectId         = tostring(customDimensions.alObjectId)
+, alObjectName       = tostring(customDimensions.alObjectName)
+, alObjectType       = tostring(customDimensions.alObjectType)
+, extensionName      = tostring(customDimensions.extensionName)
+, extensionPublisher = tostring(customDimensions.extensionPublisher)
+, executionTime      = tostring(customDimensions.executionTime)
+, executionTimeMS    = toreal(totimespan(customDimensions.executionTime)) / 10000
+, sqlStatement       = tostring(customDimensions.sqlStatement)     // actual SQL — check for missing indexes
+, alStackTrace       = tostring(customDimensions.alStackTrace)     // points to the AL code that triggered it
+, clientType         = tostring(customDimensions.clientType)
+, sqlServerSessionId = tostring(customDimensions.sqlServerSessionId)
+| where executionTimeMS > 1000                                     // tighten threshold as needed
+| order by executionTimeMS desc
+//What to look for: 
+//sqlStatement will show you the actual T-SQL. 
+//Look for table scans on Sales Header, Sales Line, Item, or Customer. alStackTrace tells you which codeunit or page trigger fired it.

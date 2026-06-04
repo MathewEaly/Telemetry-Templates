@@ -1,0 +1,12 @@
+pageViews
+| where timestamp > ago(14d)
+| where name has "Sales Order"
+| summarize
+    avgDurationMS = round(avg(duration), 0)
+  , pageLoads     = count()
+  by bin(timestamp, 1h)
+| order by timestamp asc
+| render timechart
+//Time-correlated spikes strongly suggest server-side load 
+//(e.g., a job scheduler firing at 8 AM or an inventory adjustment running at noon). 
+//Flat but elevated duration across all hours for specific users points to network.
