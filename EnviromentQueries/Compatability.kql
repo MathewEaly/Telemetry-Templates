@@ -1,0 +1,48 @@
+// ============================================================
+// BC Extension Compatibility — Next Minor & Major Update Check
+// Application Insights | Partner Telemetry | BC SaaS
+// ============================================================
+// Set your target environment name here
+let TargetEnvironment = "YOUR_ENVIRONMENT_NAME";  // <-- replace this
+
+traces
+| where timestamp > ago(30d)
+| where customDimensions has "LC0020"
+| where customDimensions.eventId == "LC0020"
+| where customDimensions.environmentName =~ TargetEnvironment
+| extend
+    ExtensionName          = tostring(customDimensions.extensionName),
+    Publisher              = tostring(customDimensions.extensionPublisher),
+    CurrentVersion         = tostring(customDimensions.extensionVersion),
+    ExtensionAppId         = tostring(customDimensions.extensionId),
+    EnvironmentName        = tostring(customDimensions.environmentName),
+    TenantId               = tostring(customDimensions.aadTenantId),
+    NextMinorVersion       = tostring(customDimensions.nextMinorVersion),
+    NextMajorVersion       = tostring(customDimensions.nextMajorVersion),
+    CompatibleWithMinor    = tostring(customDimensions.compatibleWithNextMinorVersion),
+    CompatibleWithMajor    = tostring(customDimensions.compatibleWithNextMajorVersion)
+| where isnotempty(ExtensionName)
+| extend
+    NextMinorCompatible    = case(
+                                CompatibleWithMinor == "true",  "✅ Yes",
+                                CompatibleWithMinor == "false", "❌ No",
+                                "⚠️ N/A"),
+    NextMajorCompatible    = case(
+                                isempty(NextMajorVersion),       "— Not Yet Available",
+                                CompatibleWithMajor == "true",  "✅ Yes",
+                                CompatibleWithMajor == "false", "❌ No",
+                                "⚠️ N/A")
+| summarize
+    arg_max(timestamp, *)
+    by ExtensionAppId  // keeps the most recent record per extension
+| project
+    EnvironmentName,
+    TenantId,
+    ExtensionName,
+    Publisher,
+    CurrentVersion,
+    NextMinorVersion,
+    NextMinorCompatible,
+    NextMajorVersion,
+    NextMajorCompatible
+| sort by NextMinorCompatible asc, ExtensionName asc
