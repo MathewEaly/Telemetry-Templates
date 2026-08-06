@@ -1,4 +1,4 @@
-//Find incoming webservice calls that resulted in a 409 Conflict response code
+//Find incoming webservice calls that resulted in a 429 Conflict response code
 // Incoming Web Service Requests
 traces
 | where timestamp > ago(5d) // change if your retention policy is different than the default
