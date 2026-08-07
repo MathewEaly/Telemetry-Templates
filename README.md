@@ -1,119 +1,145 @@
-# Azure Application Insights KQL Queries
+# Business Central Telemetry — KQL Query Library
 
-This repository contains Kusto Query Language (KQL) queries for retrieving telemetry data from Azure Application Insights.
+A collection of production-tested Kusto Query Language (KQL) queries for diagnosing and monitoring Microsoft Dynamics 365 Business Central environments through Azure Application Insights.
 
-These queries can be used to troubleshoot application issues, investigate performance, analyze usage patterns, and explore telemetry collected by Application Insights.
+These queries were developed and refined through real-world BC SaaS support and implementation work — troubleshooting ISV conflicts, performance degradation, job queue failures, deadlocks, and integration issues across multi-tenant environments. They are organized by diagnostic category and are designed to be dropped into Log Analytics with minimal modification.
+
+---
+
+## Who this is for
+
+- BC functional consultants and support engineers diagnosing tenant issues
+- Partners and ISVs monitoring extension behavior in SaaS environments
+- Admins and IT teams triaging performance or error spikes
+- Anyone building out a BC telemetry practice from scratch
 
 ---
 
 ## Prerequisites
 
-Before using these queries, ensure you have:
-
-- Access to an Azure subscription
-- Reader (or higher) permissions to the target Application Insights resource
-- Access to the Azure Portal
-- Familiarity with basic Kusto Query Language (KQL) concepts (helpful, but not required)
+- Access to an Azure subscription with an Application Insights resource connected to a BC environment
+- Reader permissions (or higher) on the Application Insights resource
+- Access to the Azure Portal or VS Code with the KQL extension
+- Basic familiarity with KQL is helpful but not required — queries include inline comments explaining what each section does
 
 ---
 
-## Running a Query
+## Query catalog
 
-1. Sign in to the Azure Portal.
+### Root-level queries
+
+| File | What it answers |
+|---|---|
+| `429Error.kql` | Identifies HTTP 429 (throttling) errors — useful for pinpointing integration or API call volume issues |
+| `ConfigPackage.kql` | Tracks configuration package import/export activity |
+| `DeadLockBySource.kql` | Breaks down database deadlocks by source process, locking object, and SQL operation type — includes regex-based AL stack trace parsing to identify the extension or codeunit at the top and bottom of the call stack |
+| `Email.kql` | Monitors email send activity and failures |
+| `Error.kql` | General error query — starting point for unspecified error investigations |
+| `FollowSessionID.kql` | Traces a full user session by session ID — useful for reconstructing what happened before an error |
+| `JobQueue.KQL` | Comprehensive job queue monitoring covering all 9 lifecycle events (enqueued, started, finished, failed, retried, stopped, cancelled, rescheduled, run-once) — includes a joined query that correlates job queue failures with task scheduler errors to identify root cause |
+| `LastLockTimeOUt.kql` | Surfaces the most recent lock timeout events |
+| `OData_Finder.kql` | Identifies OData call activity — useful for diagnosing integration performance or unauthorized API access |
+| `PageView.kql` | Tracks page load activity by user and page |
+| `PermissionErrors.kql` | Surfaces permission-related errors by user and object |
+| `Postings.kql` | Monitors posting activity (GL, sales, purchase) — useful for identifying volume patterns or posting failures |
+| `RAWErrors.kql` | Raw error output — unfiltered, use for initial triage |
+| `StackTraces.kql` | Extracts and parses AL stack traces from error events |
+| `TopEvents.kql` | Summary of the highest-volume telemetry events in the environment — good starting point for any investigation |
+| `UITimeWaiting.kql` | Measures time users spend waiting on UI operations — useful for identifying slow pages or high-latency scenarios |
+| `WhoDidWhatWhen.kql` | Audit-style query tracing user actions by timestamp — useful for change investigations |
+
+### Subfolders
+
+| Folder | Contents |
+|---|---|
+| `Environment/` | Queries focused on environment-level telemetry — upgrade events, extension lifecycle, environment health signals |
+| `Performance/` | Performance-focused queries covering long-running SQL, slow AL execution, and resource saturation patterns |
+| `Reports/` | Queries targeting report execution — run times, failures, and usage patterns |
+| `Slowness/` | Targeted slowness investigation queries — isolates UI wait time, query duration, and dependency call latency |
+| `WebService/` | OData and SOAP web service monitoring — call volume, errors, and slow dependency calls from integrations |
+
+---
+
+## Running a query
+
+1. Sign in to the [Azure Portal](https://portal.azure.com).
 2. Navigate to your **Application Insights** resource.
 3. Select **Logs** from the left navigation menu.
-4. Open the desired `.kql` file from this repository.
-5. Copy the contents of the query.
-6. Paste the query into the Log Analytics query editor.
-7. Modify any parameters or placeholders if necessary (such as timestamps, operation names, request IDs, or environment-specific values).
-8. Click **Run** to execute the query.
+4. Copy the contents of the relevant `.kql` file.
+5. Paste into the Log Analytics query editor.
+6. Adjust the time range and any environment-specific filters (tenant ID, company name, environment name).
+7. Click **Run**.
+
+Alternatively, open queries directly in **VS Code** using the [KQL extension](https://marketplace.visualstudio.com/items?itemName=josin.kusto-syntax-highlighting) and connect to your Log Analytics workspace.
 
 ---
 
-## Customizing Queries
+## Customizing queries
 
-Many KQL queries are designed to be customized before execution.
+Most queries include inline comments flagging the values most likely to need adjustment:
 
-Common modifications include:
+- Time range: `| where timestamp > ago(24h)` — change the duration as needed
+- Tenant filter: `| where customDimensions.aadTenantId == '<your-tenant-id>'`
+- Environment name: `| where customDimensions.environmentName == '<your-env>'`
+- Company name: `| where customDimensions.companyName == '<your-company>'`
+- Result limits: `| take 100` or `| limit 50` — reduce when testing, remove for full results
 
-- Changing the time range
-- Filtering by cloud role
-- Filtering by operation ID
-- Searching for a specific user or session
-- Filtering by request name or dependency
-- Adjusting result limits
-- Adding or removing projected columns
-
-Review the query before running it to determine which values should be updated for your environment.
+Apply filters as early as possible in the query pipeline to improve performance, especially on high-volume workspaces.
 
 ---
 
-## Common Telemetry Tables
-
-Application Insights stores different types of telemetry in separate tables. Some commonly used tables include:
+## Key telemetry tables
 
 | Table | Description |
-|--------|-------------|
-| `requests` | Incoming application requests |
-| `dependencies` | Calls to external services, databases, or APIs |
-| `exceptions` | Application exceptions and stack traces |
-| `traces` | Application log messages |
-| `customEvents` | User-defined events |
-| `customMetrics` | User-defined metrics |
-| `pageViews` | Browser page views (web applications) |
+|---|---|
+| `traces` | The primary table for BC telemetry — most AL and platform events land here via `customDimensions` |
+| `requests` | Incoming requests to the BC service |
+| `dependencies` | External calls — SQL, APIs, integrations |
+| `exceptions` | Unhandled exceptions with stack traces |
+| `customEvents` | App-defined events |
+| `customMetrics` | App-defined metrics |
+| `pageViews` | Browser-side page load data |
 | `availabilityResults` | Availability test results |
-| `browserTimings` | Client-side performance metrics |
+
+Most BC-specific telemetry uses the `traces` table with event IDs stored in `customDimensions.eventId`. Filtering on `customDimensions has 'AL0000XXX'` before the `eventId` filter significantly improves query performance on large workspaces.
 
 ---
 
-## Time Range
+## A note on the job queue / task scheduler join
 
-Queries can use either:
-
-- The time picker in the Azure Portal
-- Explicit KQL filters such as:
-
-```kusto
-| where timestamp > ago(24h)
-```
-
-If both are used, the query filter further restricts the selected time range.
+The `JobQueue.KQL` file includes a query that joins job queue failure events (`AL0000HE7`) with task scheduler error events (`LC0045`) on the scheduled task ID. This pattern is particularly useful when a job queue entry is failing silently — the job queue event shows the failure but not the underlying cause; the task scheduler event often contains the `failureReason` and whether the exception is retriable. Correlating the two gives a complete picture of what went wrong and whether intervention is needed.
 
 ---
 
 ## Tips
 
-- Start with a broader time range, then narrow your search.
-- Apply filters early in the query to improve performance.
-- Use `take` or `limit` while developing or testing queries.
-- Save frequently used queries in your own Azure environment for quick access.
-- Review projected columns to reduce unnecessary data.
+- Start with `TopEvents.kql` on any new environment to understand what telemetry is flowing and at what volume before diving into specific queries.
+- Use `FollowSessionID.kql` when you have a user-reported error with a timestamp — pull the session ID from any nearby event and reconstruct the full session context.
+- The `DeadLockBySource.kql` stack trace parsing extracts both the top and bottom of the AL call stack, which helps distinguish whether a deadlock is originating in a Microsoft base app object, an ISV extension, or a per-tenant customization.
+- Save frequently used queries to your Log Analytics workspace as **Saved Queries** so they're available without returning to this repo each time.
 
 ---
 
-## About Kusto Query Language (KQL)
+## Related resources
 
-Kusto Query Language (KQL) is the query language used by Azure Monitor, Log Analytics, and Application Insights to analyze telemetry data.
-
-Microsoft provides comprehensive documentation here:
-
-https://learn.microsoft.com/azure/data-explorer/kusto/query/
+- [Microsoft Dynamics 365 BC Telemetry Documentation](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/administration/telemetry-overview)
+- [BC Telemetry GitHub (Microsoft)](https://github.com/microsoft/BCTech/tree/master/samples/AppInsights) — the official Microsoft sample library this repo extends and builds on
+- [KQL Reference](https://learn.microsoft.com/azure/data-explorer/kusto/query/)
+- [Application Insights Overview](https://learn.microsoft.com/azure/azure-monitor/app/app-insights-overview)
 
 ---
 
 ## Contributing
 
-Contributions are welcome.
-
-If you have additional queries or improvements:
+Contributions and query suggestions are welcome.
 
 1. Fork the repository.
 2. Create a feature branch.
-3. Add or update the appropriate `.kql` file.
-4. Submit a pull request with a brief description of the changes.
+3. Add or update the relevant `.kql` file with inline comments explaining what the query does and when to use it.
+4. Submit a pull request with a brief description of the scenario the query addresses.
 
 ---
 
 ## License
 
-This repository is provided as-is for educational and operational use. 
+Provided as-is for operational and educational use. Queries may be adapted freely for use in your own BC environments.
