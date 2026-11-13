@@ -1,0 +1,32 @@
+// Authorization failures for a specific tenant and environment.
+// RT0001: Authorization Failed (Pre-open Company)
+// RT0002: Authorization Failed (Open Company)
+let _lookback = 18h;
+let _aadTenantId = '00000000-0000-0000-0000-000000000000'; // Enter the Microsoft Entra tenant ID.
+let _environmentName = 'Production'; // Enter the Business Central environment name.
+traces
+| where timestamp > ago(_lookback)
+| where customDimensions.eventId in ('RT0001', 'RT0002')
+| extend
+    aadTenantId = tostring(customDimensions.aadTenantId),
+    environmentName = tostring(customDimensions.environmentName)
+| where aadTenantId =~ _aadTenantId
+    and environmentName =~ _environmentName
+| project
+    timestamp,
+    eventId = tostring(customDimensions.eventId),
+    authorizationStage = case(
+        customDimensions.eventId == 'RT0001', 'Pre-open Company',
+        customDimensions.eventId == 'RT0002', 'Open Company',
+        'Unknown'),
+    failureReason = tostring(customDimensions.failureReason),
+    aadTenantId,
+    environmentName,
+    environmentType = tostring(customDimensions.environmentType),
+    companyName = tostring(customDimensions.companyName),
+    clientType = tostring(customDimensions.clientType),
+    usertelemetryId = user_Id,
+    sessionId = session_Id,
+    componentVersion = tostring(customDimensions.componentVersion),
+    message
+| order by timestamp desc
